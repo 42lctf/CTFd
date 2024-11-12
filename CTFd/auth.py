@@ -22,6 +22,7 @@ from CTFd.utils.logging import log
 from CTFd.utils.modes import TEAMS_MODE
 from CTFd.utils.security.auth import login_user, logout_user
 from CTFd.utils.security.signing import unserialize
+from CTFd.utils.user import get_ip
 from CTFd.utils.validators import ValidationError
 
 auth = Blueprint("auth", __name__)
@@ -426,6 +427,44 @@ def login():
             errors.append("Your username or password is incorrect")
             db.session.close()
             return render_template("login.html", errors=errors)
+    else:
+        db.session.close()
+        return render_template("login.html", errors=errors)
+    
+@auth.route("/po_login", methods=["GET"])
+def po_login():
+    errors = get_errors()
+    if request.method == "GET":
+        
+        addr = str(get_ip())
+        ip = addr.split(".")
+        
+        if (ip[0] == '172'):
+            
+            computer_account = f"c{int(ip[1]) - 10}r{ip[2]}s{ip[3]}"
+            
+            user = Users.query.filter_by(name=computer_account).first()
+            if user:
+                login_user(user)
+                db.session.close()
+                
+                if request.args.get("next") and validators.is_safe_url(
+                    request.args.get("next")
+                ):
+                    return redirect(request.args.get("next"))
+                return redirect(url_for("challenges.listing"))
+
+            else:
+                errors.append(
+                    f"Computer {computer_account} for ip {addr} doesnt have an account" 
+                )
+
+        else:
+            errors.append(
+                f"External ip {addr}" 
+            )
+
+        return render_template("login.html", errors=errors)
     else:
         db.session.close()
         return render_template("login.html", errors=errors)

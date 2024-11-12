@@ -189,6 +189,12 @@ class VisibilitySettingsForm(BaseForm):
         choices=[("visible", "Visible"), ("hidden", "Hidden")],
         default='hidden',
     )
+    display_po_login = SelectField(
+        ("Display po login"),
+        description=("If display po login."),
+        choices=[("visible", "Visible"), ("hidden", "Hidden")],
+        default='hidden',
+    )
 
 
 class LocalizationForm(BaseForm):

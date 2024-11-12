@@ -13,6 +13,7 @@ class ConfigTypes(str, RawEnum):
     REGISTRATION_VISIBILITY = "registration_visibility"
     DIRECT_LOGIN_VISIBILITY = "display_direct_login"
     OAUTH2_LOGIN_VISIBILITY = "display_oauth2_login"
+    PO_LOGIN_VISIBILITY = "display_po_login"
 
 
 @JinjaEnum

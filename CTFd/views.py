@@ -249,6 +249,7 @@ def setup():
             
             set_config(ConfigTypes.DIRECT_LOGIN_VISIBILITY, True)
             set_config(ConfigTypes.OAUTH2_LOGIN_VISIBILITY, False)
+            set_config(ConfigTypes.PO_LOGIN_VISIBILITY, False)
 
             set_config(
                 "successful_registration_email_subject",

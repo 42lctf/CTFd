@@ -57,3 +57,7 @@ def direct_login_visible():
 def oauth_login_visible():
     v = get_config(ConfigTypes.OAUTH2_LOGIN_VISIBILITY)
     return v == 'visible'
+
+def po_login_visible():
+    v = get_config(ConfigTypes.PO_LOGIN_VISIBILITY)
+    return v == 'visible'
