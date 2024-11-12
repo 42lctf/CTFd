@@ -430,34 +430,35 @@ def login():
         db.session.close()
         return render_template("login.html", errors=errors)
 
-
+# REPLACED
 @auth.route("/oauth")
 def oauth_login():
-    endpoint = (
-        get_app_config("OAUTH_AUTHORIZATION_ENDPOINT")
-        or get_config("oauth_authorization_endpoint")
-        or "https://auth.majorleaguecyber.org/oauth/authorize"
-    )
+    # endpoint = (
+    #     get_app_config("OAUTH_AUTHORIZATION_ENDPOINT")
+    #     or get_config("oauth_authorization_endpoint")
+    #     or "https://auth.majorleaguecyber.org/oauth/authorize"
+    # )
 
-    if get_config("user_mode") == "teams":
-        scope = "profile team"
-    else:
-        scope = "profile"
+    # if get_config("user_mode") == "teams":
+    #     scope = "profile team"
+    # else:
+    #     scope = "profile"
 
-    client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
+    # client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
 
-    if client_id is None:
-        error_for(
-            endpoint="auth.login",
-            message="OAuth Settings not configured. "
-            "Ask your CTF administrator to configure MajorLeagueCyber integration.",
-        )
-        return redirect(url_for("auth.login"))
+    # if client_id is None:
+    #     error_for(
+    #         endpoint="auth.login",
+    #         message="OAuth Settings not configured. "
+    #         "Ask your CTF administrator to configure MajorLeagueCyber integration.",
+    #     )
+    #     return redirect(url_for("auth.login"))
 
-    redirect_url = "{endpoint}?response_type=code&client_id={client_id}&scope={scope}&state={state}".format(
-        endpoint=endpoint, client_id=client_id, scope=scope, state=session["nonce"]
-    )
-    return redirect(redirect_url)
+    # redirect_url = "{endpoint}?response_type=code&client_id={client_id}&scope={scope}&state={state}".format(
+    #     endpoint=endpoint, client_id=client_id, scope=scope, state=session["nonce"]
+    # )
+    # return redirect(redirect_url)
+    pass
 
 
 @auth.route("/redirect", methods=["GET"])

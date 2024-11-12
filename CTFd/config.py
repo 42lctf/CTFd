@@ -109,6 +109,12 @@ class ServerConfig(object):
     REDIS_PASSWORD: str = empty_str_cast(config_ini["server"]["REDIS_PASSWORD"])
     REDIS_PORT: int = empty_str_cast(config_ini["server"]["REDIS_PORT"]) or 6379
     REDIS_DB: int = empty_str_cast(config_ini["server"]["REDIS_DB"]) or 0
+    
+    OAUTH2_CLIENT_ID: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_CLIENT_ID"]) or ''
+    OAUTH2_CLIENT_SECRET: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_CLIENT_SECRET"]) or ''
+    OAUTH2_BASE_URL: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_BASE_URL"]) or ''
+    OAUTH2_TOKEN_URL: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_TOKEN_URL"]) or ''
+    OAUTH2_AUTHORIZATION_URL: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_AUTHORIZATION_URL"]) or ''
 
     if REDIS_URL or REDIS_HOST is None:
         CACHE_REDIS_URL = REDIS_URL

@@ -7,13 +7,18 @@ services:
       - "8000:8000"
     environment:
       - UPLOAD_FOLDER=/var/uploads
-      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@db/ctfd
+      - DATABASE_URL=mysql+pymysql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@db/ctfd
       - REDIS_URL=redis://cache:6379
       - WORKERS=1
       - LOG_FOLDER=/var/log/CTFd
       - ACCESS_LOG=-
       - ERROR_LOG=-
       - REVERSE_PROXY=true
+      - OAUTH2_CLIENT_ID=${OAUTH2_CLIENT_ID}
+      - OAUTH2_CLIENT_SECRET=${OAUTH2_CLIENT_SECRET}
+      - OAUTH2_BASE_URL=${OAUTH2_BASE_URL}
+      - OAUTH2_TOKEN_URL=${OAUTH2_TOKEN_URL}
+      - OAUTH2_AUTHORIZATION_URL=${OAUTH2_AUTHORIZATION_URL}
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
@@ -38,9 +43,9 @@ services:
     image: mariadb:10.11
     restart: always
     environment:
-      - MARIADB_ROOT_PASSWORD=ctfd
-      - MARIADB_USER=ctfd
-      - MARIADB_PASSWORD=ctfd
+      - MARIADB_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+      - MARIADB_USER=${DATABASE_USERNAME}
+      - MARIADB_PASSWORD=${DATABASE_PASSWORD}
       - MARIADB_DATABASE=ctfd
       - MARIADB_AUTO_UPGRADE=1
     volumes:

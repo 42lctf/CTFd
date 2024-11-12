@@ -1,0 +1,2 @@
+flask-dance==5.1.0
+flask-talisman
