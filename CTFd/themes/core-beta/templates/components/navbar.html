@@ -175,7 +175,7 @@
 
           {% if oauth_login_visible() %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('auth.login_oauth') }}">
+              <a class="nav-link" href="{{ url_for('auth.oauth_login') }}">
                 <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Login 42{% endtrans %}">
                   <i class="fas fa-sign-in-alt d-none d-md-inline d-lg-none"></i>
                 </span>
