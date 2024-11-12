@@ -103,7 +103,7 @@ def load(app):
     ###############################
     # ('', 204) is "No Content" code
     # set_config('registration_visibility', False)
-    app.view_functions['auth.oauth'] = lambda: redirect(authentication_url_prefix + "/" + oauth_provider)
+    app.view_functions['auth.oauth2'] = lambda: redirect(authentication_url_prefix + "/" + oauth_provider)
     # app.view_functions['auth.register'] = lambda: ('', 204)
     # app.view_functions['auth.reset_password'] = lambda: ('', 204)
     # app.view_functions['auth.confirm'] = lambda: ('', 204)     
