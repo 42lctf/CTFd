@@ -4,7 +4,9 @@
 			challenge_visibility=challenge_visibility, 
 			account_visibility=account_visibility, 
 			score_visibility=score_visibility, 
-			registration_visibility=registration_visibility
+			registration_visibility=registration_visibility,
+			display_direct_login=display_direct_login,
+			display_oauth2_login=display_oauth2_login,
 		) 
 	%}
 	<form method="POST" autocomplete="off" class="w-100">
@@ -42,6 +44,22 @@
 			{{ form.registration_visibility(class="form-control custom-select") }}
 			<small class="form-text text-muted">
 				{{ form.registration_visibility.description }}
+			</small>
+		</div>
+
+		<div class="form-group">
+			{{ form.display_direct_login.label }}
+			{{ form.display_direct_login(class="form-control custom-select") }}
+			<small class="form-text text-muted">
+				{{ form.display_direct_login.description }}
+			</small>
+		</div>
+
+		<div class="form-group">
+			{{ form.display_oauth2_login.label }}
+			{{ form.display_oauth2_login(class="form-control custom-select") }}
+			<small class="form-text text-muted">
+				{{ form.display_oauth2_login.description }}
 			</small>
 		</div>
 

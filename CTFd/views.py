@@ -246,6 +246,9 @@ def setup():
             # Set up default emails
             set_config("verification_email_subject", DEFAULT_VERIFICATION_EMAIL_SUBJECT)
             set_config("verification_email_body", DEFAULT_VERIFICATION_EMAIL_BODY)
+            
+            set_config(ConfigTypes.DIRECT_LOGIN_VISIBILITY, True)
+            set_config(ConfigTypes.OAUTH2_LOGIN_VISIBILITY, False)
 
             set_config(
                 "successful_registration_email_subject",

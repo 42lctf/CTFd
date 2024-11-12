@@ -11,6 +11,8 @@ class ConfigTypes(str, RawEnum):
     SCORE_VISIBILITY = "score_visibility"
     ACCOUNT_VISIBILITY = "account_visibility"
     REGISTRATION_VISIBILITY = "registration_visibility"
+    DIRECT_LOGIN_VISIBILITY = "display_direct_login"
+    OAUTH2_LOGIN_VISIBILITY = "display_oauth2_login"
 
 
 @JinjaEnum

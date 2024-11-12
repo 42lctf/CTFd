@@ -49,3 +49,11 @@ def registration_visible():
         return False
     else:
         return False
+    
+def direct_login_visible():
+    v = get_config(ConfigTypes.DIRECT_LOGIN_VISIBILITY)
+    return v == 'visible'
+
+def oauth_login_visible():
+    v = get_config(ConfigTypes.OAUTH2_LOGIN_VISIBILITY)
+    return v == 'visible'

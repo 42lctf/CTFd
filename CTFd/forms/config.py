@@ -176,6 +176,19 @@ class VisibilitySettingsForm(BaseForm):
         ],
         default=RegistrationVisibilityTypes.PUBLIC,
     )
+    
+    display_direct_login = SelectField(
+        ("Display direct login"),
+        description=("If display direct login."),
+        choices=[("visible", "Visible"), ("hidden", "Hidden")],
+        default='visible',
+    )
+    display_oauth2_login = SelectField(
+        ("Display oauth2 login"),
+        description=("If display oauth2 login."),
+        choices=[("visible", "Visible"), ("hidden", "Hidden")],
+        default='hidden',
+    )
 
 
 class LocalizationForm(BaseForm):
