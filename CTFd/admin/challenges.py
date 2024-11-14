@@ -48,6 +48,9 @@ def challenges_detail(challenge_id):
     )
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
 
+    categories = Challenges.query.with_entities(Challenges.category).order_by(Challenges.category.asc()).distinct().all()
+    categories = list(map(lambda x: x[0], categories))
+    
     try:
         challenge_class = get_chal_class(challenge.type)
     except KeyError:
@@ -57,7 +60,9 @@ def challenges_detail(challenge_id):
         )
 
     update_j2 = render_template(
-        challenge_class.templates["update"].lstrip("/"), challenge=challenge
+        challenge_class.templates["update"].lstrip("/"), 
+        challenge=challenge, 
+        categories=categories,
     )
 
     update_script = url_for(

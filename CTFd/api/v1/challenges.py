@@ -235,6 +235,9 @@ class ChallengeList(Resource):
     )
     def post(self):
         data = request.form or request.get_json()
+        
+        if ("category" in data.keys()):
+            data["category"] = str(data["category"]).lower()
 
         # Load data through schema for validation but not for insertion
         schema = ChallengeSchema()
@@ -258,6 +261,9 @@ class ChallengeTypes(Resource):
     def get(self):
         response = {}
 
+        categories = Challenges.query.with_entities(Challenges.category).order_by(Challenges.category.asc()).distinct().all()
+        categories = list(map(lambda x: x[0], categories))
+
         for class_id in CHALLENGE_CLASSES:
             challenge_class = CHALLENGE_CLASSES.get(class_id)
             response[challenge_class.id] = {
@@ -266,7 +272,8 @@ class ChallengeTypes(Resource):
                 "templates": challenge_class.templates,
                 "scripts": challenge_class.scripts,
                 "create": render_template(
-                    challenge_class.templates["create"].lstrip("/")
+                    challenge_class.templates["create"].lstrip("/"),
+                    categories=categories
                 ),
             }
         return {"success": True, "data": response}
@@ -456,6 +463,9 @@ class Challenge(Resource):
     )
     def patch(self, challenge_id):
         data = request.get_json()
+        
+        if ("category" in data.keys()):
+            data["category"] = str(data["category"]).lower()
 
         # Load data through schema for validation but not for insertion
         schema = ChallengeSchema()

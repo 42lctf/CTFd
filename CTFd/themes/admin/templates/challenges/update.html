@@ -18,6 +18,17 @@
 			Category<br>
 			<small class="form-text text-muted">Challenge Category</small>
 		</label>
+		<br>
+		{% for cat in categories %}
+			<button 
+				class="btn btn-outline-info" 
+				style="padding: .25rem .5rem; font-size: .875rem; line-height: 1.5; border-radius: .2rem; margin-bottom: 8px;" 
+				type="button" 
+				onclick="selectCategoryOption('{{ cat }}')" 
+				value="{{ cat }}">
+				{{ cat }}
+			</button>
+		{% endfor %}
 		<input type="text" class="form-control chal-category" name="category" value="{{ challenge.category }}">
 	</div>
 	{% endblock %}
@@ -103,6 +114,12 @@
 	</div>
 	{% endblock %}
 </form>
+
+<script>
+	function selectCategoryOption(cat) {
+		$('input.chal-category[name="category"]')[0].value = cat;
+	}
+</script>
 
 {% block footer %}
 {% endblock %}
