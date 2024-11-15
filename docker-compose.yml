@@ -14,11 +14,16 @@ services:
       - ACCESS_LOG=-
       - ERROR_LOG=-
       - REVERSE_PROXY=true
+
       - OAUTH2_CLIENT_ID=${OAUTH2_CLIENT_ID}
       - OAUTH2_CLIENT_SECRET=${OAUTH2_CLIENT_SECRET}
       - OAUTH2_BASE_URL=${OAUTH2_BASE_URL}
       - OAUTH2_TOKEN_URL=${OAUTH2_TOKEN_URL}
       - OAUTH2_AUTHORIZATION_URL=${OAUTH2_AUTHORIZATION_URL}
+      
+      - DOCKER_MIN_PORT=${DOCKER_MIN_PORT}
+      - DOCKER_MAX_PORT=${DOCKER_MAX_PORT}
+
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads

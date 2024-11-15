@@ -115,6 +115,9 @@ class ServerConfig(object):
     OAUTH2_BASE_URL: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_BASE_URL"]) or ''
     OAUTH2_TOKEN_URL: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_TOKEN_URL"]) or ''
     OAUTH2_AUTHORIZATION_URL: str = empty_str_cast(config_ini["oauth2"]["OAUTH2_AUTHORIZATION_URL"]) or ''
+    
+    DOCKER_MIN_PORT: str = empty_str_cast(config_ini["docker"]["DOCKER_MIN_PORT"]) or ''
+    DOCKER_MAX_PORT: str = empty_str_cast(config_ini["docker"]["DOCKER_MAX_PORT"]) or ''
 
     if REDIS_URL or REDIS_HOST is None:
         CACHE_REDIS_URL = REDIS_URL

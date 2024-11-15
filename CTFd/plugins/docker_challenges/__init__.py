@@ -42,12 +42,12 @@ import json
 import hashlib
 import random
 from CTFd.plugins import register_admin_plugin_menu_bar
-from flask import current_app
 
 from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.utils.config import get_themes
-from rich import print
+from flask import current_app
+
 
 class DockerConfig(db.Model):
     """
@@ -135,8 +135,7 @@ def define_docker_admin(app):
             try:
                 b.repositories = ','.join(request.form.to_dict(flat=False)['repositories'])
             except:
-                # print(traceback.print_exc())
-                print("NO REPO FOUND")
+                print(traceback.print_exc())
                 b.repositories = None
             db.session.add(b)
             db.session.commit()
@@ -260,7 +259,7 @@ def get_repositories(docker, tags=False, repos=False):
     r = do_request(docker, '/images/json?all=1')
     result = list()
     for i in r.json():
-        if not i['RepoTags'] == None and len(i['RepoTags']) > 0:
+        if i['RepoTags']:
             if not i['RepoTags'][0].split(':')[0] == '<none>':
                 if repos:
                     if not i['RepoTags'][0].split(':')[0] in repos:
@@ -278,7 +277,8 @@ def get_unavailable_ports(docker):
     for i in r.json():
         if not i['Ports'] == []:
             for p in i['Ports']:
-                result.append(p['PublicPort'])
+                if 'PublicPort' in p:
+                    result.append(p['PublicPort'])
     return result
 
 
@@ -320,8 +320,8 @@ def create_container(docker, image, team, portbl):
     assigned_ports = dict()
     for i in needed_ports:
         while True:
-            print(current_app.config.get("DOCKER_MIN_PORT"))
-            assigned_port = random.choice(range(30000, 60000))
+            print(current_app.config.get("DOCKER_MIN_PORT"), current_app.config.get("DOCKER_MAX_PORT"))
+            assigned_port = random.choice(range(current_app.config.get("DOCKER_MIN_PORT"), current_app.config.get("DOCKER_MAX_PORT")))
             if assigned_port not in portbl:
                 assigned_ports['%s/tcp' % assigned_port] = {}
                 break
