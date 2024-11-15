@@ -39,7 +39,7 @@ from CTFd.utils import user as current_user
 from CTFd.utils import validators
 from CTFd.utils.config import is_setup, is_teams_mode
 from CTFd.utils.config.pages import build_markdown, get_page
-from CTFd.utils.config.visibility import challenges_visible
+from CTFd.utils.config.visibility import challenges_visible, challenges_po_mode
 from CTFd.utils.dates import ctf_ended, ctftime, view_after_ctf
 from CTFd.utils.decorators import authed_only
 from CTFd.utils.email import (
@@ -397,6 +397,10 @@ def static_html(route):
     :param route:
     :return:
     """
+    
+    if (route == "index" and challenges_po_mode()):
+        route = "index_po"
+    
     page = get_page(route)
     if page is None:
         abort(404)
