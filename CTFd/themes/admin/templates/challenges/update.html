@@ -115,12 +115,12 @@
 		<div class="row">
 
 			<div class="col-6">
-				<small class="form-text text-muted">How much attempts in parallel</small>
-				<input type="number" class="form-control" name="attempts_parallel" value="{{ challenge.rate_limit_buffer }}">
+				<small class="form-text text-muted">How many attempts in parallel</small>
+				<input type="number" class="form-control" name="rate_limit_buffer" value="{{ challenge.rate_limit_buffer }}">
 			</div>
 			<div class="col-6">
 				<small class="form-text text-muted">Cooldown in minutes</small>
-				<input type="number" class="form-control" name="attempts_cooldown" value="{{ challenge.rate_limit_span }}">
+				<input type="number" class="form-control" name="rate_limit_span" value="{{ challenge.rate_limit_span }}">
 			</div>
 		</div>
 	</div>

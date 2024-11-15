@@ -3,6 +3,7 @@ from typing import List  # noqa: I001
 from flask import abort, render_template, request, url_for
 from flask_restx import Namespace, Resource
 from sqlalchemy.sql import and_
+import datetime
 
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
@@ -567,8 +568,17 @@ class ChallengeAttempt(Resource):
         fails = Fails.query.filter_by(
             account_id=user.account_id, challenge_id=challenge_id
         ).count()
-
+        
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        
+        timed_fails = []
+        if (challenge.rate_limit_buffer > 0 and challenge.rate_limit_span > 0):
+            timed_fails = Fails.query.filter(
+                Submissions.account_id == user.account_id, 
+                Submissions.challenge_id == challenge_id, 
+                Submissions.date > (datetime.datetime.utcnow() - datetime.timedelta(minutes=challenge.rate_limit_buffer))
+            ).order_by(Submissions.date.asc()).all()
+            
 
         if challenge.state == "hidden":
             abort(404)
@@ -644,6 +654,19 @@ class ChallengeAttempt(Resource):
                     },
                     403,
                 )
+            elif len(timed_fails) > 0 and len(timed_fails) + 1 >= challenge.rate_limit_span:
+                first_timed_date = timed_fails[0].date
+                remaining = challenge.rate_limit_span - round((datetime.datetime.utcnow() - first_timed_date).seconds / 60, 1)
+                return (
+                    {
+                        "success": True,
+                        "data": {
+                            "status": "incorrect",
+                            "message": f"You must wait {remaining} minutes for your next attempt",
+                        },
+                    },
+                    403,
+                )
 
             status, message = chal_class.attempt(challenge, request)
             if status:  # The challenge plugin says the input is right
@@ -696,6 +719,18 @@ class ChallengeAttempt(Resource):
                             "status": "incorrect",
                             "message": "{} You have {} {} remaining.".format(
                                 message, attempts_left, tries_str
+                            ),
+                        },
+                    }
+                elif (challenge.rate_limit_buffer > 0 and challenge.rate_limit_span > 0):
+                    attempts_left = challenge.rate_limit_buffer - (len(timed_fails) + 1)
+                    time_next_try = challenge.rate_limit_span
+                    return {
+                        "success": True,
+                        "data": {
+                            "status": "incorrect",
+                            "message": "{} You have {} attempts remaining for the next {} minutes.".format(
+                                message, attempts_left, time_next_try
                             ),
                         },
                     }
