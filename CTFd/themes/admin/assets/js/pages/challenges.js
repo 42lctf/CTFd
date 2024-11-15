@@ -55,7 +55,7 @@ function bulkEditChallenges(_event) {
         </select>
       </div>
       <div class="form-group">
-        <label>PO visibility</label>
+        <label>JPO visibility</label>
 				<select name="po_visibility" data-initial="">
           <option value="">--</option>
           <option value="1">Visible</option>

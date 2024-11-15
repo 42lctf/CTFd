@@ -17,7 +17,7 @@ import{$ as e,u as c,C as i,A as d}from"./main-D_lcMXdT.js";function u(o){let l=
         </select>
       </div>
       <div class="form-group">
-        <label>PO visibility</label>
+        <label>JPO visibility</label>
 				<select name="po_visibility" data-initial="">
           <option value="">--</option>
           <option value="true">Visible</option>

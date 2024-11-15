@@ -141,7 +141,7 @@ class VisibilitySettingsForm(BaseForm):
         choices=[
             (ChallengeVisibilityTypes.PUBLIC, "Public"),
             (ChallengeVisibilityTypes.PRIVATE, "Private"),
-            (ChallengeVisibilityTypes.PRIVATE_PO, "Private PO"),
+            (ChallengeVisibilityTypes.PRIVATE_PO, "Private JPO"),
             (ChallengeVisibilityTypes.ADMINS, "Admins Only"),
         ],
         default=ChallengeVisibilityTypes.PRIVATE,
