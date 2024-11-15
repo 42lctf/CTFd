@@ -102,8 +102,13 @@
 								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>
 							</td>
 							<td class="text-center">
-								{% if challenge.po_visibility == 1 %}PO{% endif %}
-								{% if challenge.had_first_blood == 1 %}FBD{% endif %}
+								{% if challenge.po_visibility == 1 %}
+									<span class="badge badge-warning">PO</span>
+								{% endif %}
+								
+								{% if challenge.had_first_blood == 1 %}
+									<span class="badge badge-info" title="First blood already done">FBD</span>
+								{% endif %}
 							</td>
 						</tr>
 					{% endfor %}
