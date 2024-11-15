@@ -42,11 +42,12 @@ import json
 import hashlib
 import random
 from CTFd.plugins import register_admin_plugin_menu_bar
+from flask import current_app
 
 from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.utils.config import get_themes
-
+from rich import print
 
 class DockerConfig(db.Model):
     """
@@ -134,7 +135,8 @@ def define_docker_admin(app):
             try:
                 b.repositories = ','.join(request.form.to_dict(flat=False)['repositories'])
             except:
-                print(traceback.print_exc())
+                # print(traceback.print_exc())
+                print("NO REPO FOUND")
                 b.repositories = None
             db.session.add(b)
             db.session.commit()
@@ -238,13 +240,13 @@ def get_client_cert(docker):
         client = docker.client_cert
         ckey = docker.client_key
         ca_file = tempfile.NamedTemporaryFile(delete=False)
-        ca_file.write(ca)
+        ca_file.write(ca.encode())
         ca_file.seek(0)
         client_file = tempfile.NamedTemporaryFile(delete=False)
-        client_file.write(client)
+        client_file.write(client.encode())
         client_file.seek(0)
         key_file = tempfile.NamedTemporaryFile(delete=False)
-        key_file.write(ckey)
+        key_file.write(ckey.encode())
         key_file.seek(0)
         CERT = (client_file.name, key_file.name)
     except:
@@ -258,7 +260,7 @@ def get_repositories(docker, tags=False, repos=False):
     r = do_request(docker, '/images/json?all=1')
     result = list()
     for i in r.json():
-        if not i['RepoTags'] == None:
+        if not i['RepoTags'] == None and len(i['RepoTags']) > 0:
             if not i['RepoTags'][0].split(':')[0] == '<none>':
                 if repos:
                     if not i['RepoTags'][0].split(':')[0] in repos:
@@ -282,7 +284,7 @@ def get_unavailable_ports(docker):
 
 def get_required_ports(docker, image):
     r = do_request(docker, f'/images/{image}/json?all=1')
-    result = r.json()['ContainerConfig']['ExposedPorts'].keys()
+    result = r.json()['Config']['ExposedPorts'].keys()
     return result
 
 
@@ -298,13 +300,13 @@ def create_container(docker, image, team, portbl):
             client = docker.client_cert
             ckey = docker.client_key
             ca_file = tempfile.NamedTemporaryFile(delete=False)
-            ca_file.write(ca)
+            ca_file.write(ca.encode())
             ca_file.seek(0)
             client_file = tempfile.NamedTemporaryFile(delete=False)
-            client_file.write(client)
+            client_file.write(client.encode())
             client_file.seek(0)
             key_file = tempfile.NamedTemporaryFile(delete=False)
-            key_file.write(ckey)
+            key_file.write(ckey.encode())
             key_file.seek(0)
             CERT = (client_file.name, key_file.name)
         except:
@@ -318,6 +320,7 @@ def create_container(docker, image, team, portbl):
     assigned_ports = dict()
     for i in needed_ports:
         while True:
+            print(current_app.config.get("DOCKER_MIN_PORT"))
             assigned_port = random.choice(range(30000, 60000))
             if assigned_port not in portbl:
                 assigned_ports['%s/tcp' % assigned_port] = {}
