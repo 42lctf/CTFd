@@ -122,6 +122,12 @@ class Challenges(db.Model):
     state = db.Column(db.String(80), nullable=False, default="visible")
     requirements = db.Column(db.JSON)
 
+    rate_limit_buffer = db.Column(db.Integer, default=-1)
+    rate_limit_span = db.Column(db.Integer, default=-1)
+
+    had_first_blood = db.Column(db.Boolean, default=False)
+    po_visiblity = db.Column(db.Boolean, default=True)
+    
     files = db.relationship("ChallengeFiles", backref="challenge")
     tags = db.relationship("Tags", backref="challenge")
     hints = db.relationship("Hints", backref="challenge")
@@ -359,6 +365,8 @@ class Users(db.Model):
     type = db.Column(db.String(80))
     secret = db.Column(db.String(128))
 
+    pool = db.Column(db.String(80))
+    
     # Supplementary attributes
     website = db.Column(db.String(128))
     affiliation = db.Column(db.String(128))
