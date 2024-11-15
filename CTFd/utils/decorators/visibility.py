@@ -59,7 +59,7 @@ def check_challenge_visibility(f):
         if v == ChallengeVisibilityTypes.PUBLIC:
             return f(*args, **kwargs)
 
-        elif v == ChallengeVisibilityTypes.PRIVATE:
+        elif v == ChallengeVisibilityTypes.PRIVATE or v == ChallengeVisibilityTypes.PRIVATE_PO:
             if authed():
                 return f(*args, **kwargs)
             else:

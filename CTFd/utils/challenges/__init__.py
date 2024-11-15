@@ -18,7 +18,7 @@ Challenge = namedtuple(
 
 
 @cache.memoize(timeout=60)
-def get_all_challenges(admin=False, field=None, q=None, **query_args):
+def get_all_challenges(admin=False, po=False, field=None, q=None, **query_args):
     filters = build_model_filters(model=Challenges, query=q, field=field)
     chal_q = Challenges.query
     # Admins can see hidden and locked challenges in the admin view
@@ -26,6 +26,10 @@ def get_all_challenges(admin=False, field=None, q=None, **query_args):
         chal_q = chal_q.filter(
             and_(Challenges.state != "hidden", Challenges.state != "locked")
         )
+        if po is True:
+            chal_q = chal_q.filter(
+                Challenges.po_visibility != "true"
+            )
     chal_q = (
         chal_q.filter_by(**query_args)
         .filter(*filters)

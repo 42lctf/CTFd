@@ -26,6 +26,7 @@ class UserModeTypes(str, RawEnum):
 class ChallengeVisibilityTypes(str, RawEnum):
     PUBLIC = "public"
     PRIVATE = "private"
+    PRIVATE_PO = "private_po"
     ADMINS = "admins"
 
 

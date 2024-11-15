@@ -30,6 +30,7 @@ from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
     scores_visible,
+    challenges_po_mode,
 )
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime
 from CTFd.utils.decorators import (
@@ -132,6 +133,8 @@ class ChallengeList(Resource):
                 if config.is_teams_mode() and get_current_team_attrs() is None:
                     abort(403)
 
+        po_mode = challenges_po_mode()
+
         # Build filtering queries
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
@@ -160,7 +163,7 @@ class ChallengeList(Resource):
             # `None` for the solve count if visiblity checks fail
             solve_count_dfl = None
 
-        chal_q = get_all_challenges(admin=admin_view, field=field, q=q, **query_args)
+        chal_q = get_all_challenges(admin=admin_view, po=po_mode, field=field, q=q, **query_args)
 
         # Iterate through the list of challenges, adding to the object which
         # will be JSONified back to the client
