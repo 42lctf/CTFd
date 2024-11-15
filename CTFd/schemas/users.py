@@ -379,6 +379,7 @@ class UserSchema(ma.ModelSchema):
             "email",
             "language",
             "affiliation",
+            "pool",
             "secret",
             "bracket_id",
             "hidden",

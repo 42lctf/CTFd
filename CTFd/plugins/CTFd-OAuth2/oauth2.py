@@ -73,7 +73,7 @@ def load(app):
         return create_or_get_user(
             username=user_info["email"],
             displayName=user_info["login"],
-#            affiliation=f'{user_info["pool_year"]}.{user_info["pool_month"]}'),
+            pool=f'{user_info["pool_year"]}.{user_info["pool_month"]}',
         )
 
     provider_users = {

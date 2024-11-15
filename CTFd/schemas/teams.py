@@ -393,6 +393,7 @@ class TeamSchema(ma.ModelSchema):
             "banned",
             "email",
             "affiliation",
+            "pool",
             "secret",
             "bracket_id",
             "members",
