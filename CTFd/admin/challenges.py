@@ -49,7 +49,7 @@ def challenges_detail(challenge_id):
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
 
     categories = Challenges.query.with_entities(Challenges.category).order_by(Challenges.category.asc()).distinct().all()
-    categories = list(map(lambda x: x[0], categories))
+    categories = list(filter(lambda x: len(x) > 1, map(lambda x: x[0], categories)))
     
     try:
         challenge_class = get_chal_class(challenge.type)

@@ -266,7 +266,7 @@ class ChallengeTypes(Resource):
         response = {}
 
         categories = Challenges.query.with_entities(Challenges.category).order_by(Challenges.category.asc()).distinct().all()
-        categories = list(map(lambda x: x[0], categories))
+        categories = list(filter(lambda x: len(x) > 1, map(lambda x: x[0], categories)))
 
         for class_id in CHALLENGE_CLASSES:
             challenge_class = CHALLENGE_CLASSES.get(class_id)
