@@ -22,7 +22,7 @@ def upgrade():
     op.add_column("challenges", sa.Column("rate_limit_span", sa.Integer, default=-1))
 
     op.add_column("challenges", sa.Column("had_first_blood", sa.Boolean, default=False))
-    op.add_column("challenges", sa.Column("po_visiblity", sa.Boolean, default=True))
+    op.add_column("challenges", sa.Column("po_visibility", sa.Boolean, default=True))
 
     op.add_column("users", sa.Column("pool", sa.String(80)))
     # ### end Alembic commands ###
@@ -34,7 +34,7 @@ def downgrade():
     op.drop_column("challenges", "rate_limit_span")
 
     op.drop_column("challenges", "had_first_blood")
-    op.drop_column("challenges", "po_visiblity")
+    op.drop_column("challenges", "po_visibility")
 
     op.drop_column("users", "pool")
     # ### end Alembic commands ###

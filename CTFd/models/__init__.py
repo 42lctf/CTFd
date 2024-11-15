@@ -126,7 +126,7 @@ class Challenges(db.Model):
     rate_limit_span = db.Column(db.Integer, default=-1)
 
     had_first_blood = db.Column(db.Boolean, default=False)
-    po_visiblity = db.Column(db.Boolean, default=True)
+    po_visibility = db.Column(db.Boolean, default=True)
     
     files = db.relationship("ChallengeFiles", backref="challenge")
     tags = db.relationship("Tags", backref="challenge")

@@ -54,6 +54,22 @@ function bulkEditChallenges(_event) {
           <option value="hidden">Hidden</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>PO visibility</label>
+				<select name="po_visibility" data-initial="">
+          <option value="">--</option>
+          <option value="1">Visible</option>
+          <option value="0">Hidden</option>
+        </select>
+      </div>
+      <div>
+        <label>Has first blood</label>
+				<select name="had_first_blood" data-initial="">
+          <option value="">--</option>
+          <option value="1">Had</option>
+          <option value="0">Hadnt</option>
+        </select>
+      </div>
     </form>
     `),
     button: "Submit",

@@ -466,7 +466,19 @@ class Challenge(Resource):
         
         if ("category" in data.keys()):
             data["category"] = str(data["category"]).lower()
-
+            
+        if ("po_visibility" in data.keys()):
+            if (data["po_visibility"] == "true"):
+                data["po_visibility"] = True
+            elif (data["po_visibility"] == "false"):
+                data["po_visibility"] = False
+                
+        if ("had_first_blood" in data.keys()):
+            if (data["had_first_blood"] == "true"):
+                data["had_first_blood"] = True
+            elif (data["had_first_blood"] == "false"):
+                data["had_first_blood"] = False
+            
         # Load data through schema for validation but not for insertion
         schema = ChallengeSchema()
         response = schema.load(data)

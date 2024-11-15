@@ -106,6 +106,58 @@
 	</div>
 	{% endblock %}
 
+	{% block challenge_rate_limit %}
+	<div class="form-group">
+		<label>
+			Rate limit<br>
+		</label>
+		
+		<div class="row">
+
+			<div class="col-6">
+				<small class="form-text text-muted">How much attempts in parallel</small>
+				<input type="number" class="form-control" name="attempts_parallel" value="{{ challenge.rate_limit_buffer }}">
+			</div>
+			<div class="col-6">
+				<small class="form-text text-muted">Cooldown in minutes</small>
+				<input type="number" class="form-control" name="attempts_cooldown" value="{{ challenge.rate_limit_span }}">
+			</div>
+		</div>
+	</div>
+	{% endblock %}
+
+	{% block challenge_tags %}
+	<div class="form-group">
+		<label>
+			Tags<br>
+		</label>
+		
+		<div class="row">
+			<div class="col-6">
+				<small class="form-text text-muted">PO visiblity</small>
+				
+				<div class="form-check">
+					<label class="form-check-label cursor-pointer">
+						<input class="form-check-input" type="checkbox" name="po_visibility" {% if challenge.po_visibility == 1 %}checked{% endif %}>
+						Visible
+					</label>
+				</div>
+			</div>
+
+			<div class="col-6">
+				<small class="form-text text-muted">If off, will trigger next first blood</small>
+
+				<div class="form-check">
+					<label class="form-check-label cursor-pointer">
+						<input class="form-check-input" type="checkbox" name="had_first_blood" {% if challenge.had_first_blood == 1 %}checked{% endif %}>
+						Did first blood
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endblock %}
+
 	{% block submit %}
 	<div>
 		<button class="btn btn-success btn-outlined float-right" type="submit">
