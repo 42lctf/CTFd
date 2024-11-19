@@ -1,15 +1,31 @@
 {% extends "challenge.html" %}
 {% block description %}
+
+<style>
+    code {
+        background-color: #d4d4d4;
+        color: #00B9BC !important;
+        padding: 1px 3px;
+        border-radius: 4px;
+        font-style: italic;
+        font-weight: 600;
+    }
+    .fa-copy {
+        cursor: pointer;
+    }
+</style>
+
 <script>
     var DOCKER_CONTAINER = '{{ challenge.docker_image | safe }}';
+    var CONNECTION_INFO = '{{ challenge.connection_info | safe }}';
     (function() {
-        get_docker_status(DOCKER_CONTAINER);
+        get_docker_status(DOCKER_CONTAINER, CONNECTION_INFO);
     })();
 </script>
 {{ challenge.html }}
 <div class='mb-3 text-center' id='docker_container'>
     <span>
-        <a onclick="start_container('{{ challenge.docker_image | safe }}');" class='btn btn-dark'>
+        <a onclick="start_container('{{ challenge.docker_image | safe }}', '{{ challenge.connection_info | safe }}');" class='btn btn-dark'>
             <small style='color:white;'><i class="fas fa-play"></i> Start Docker Instance</small>
         </a>
     </span>
