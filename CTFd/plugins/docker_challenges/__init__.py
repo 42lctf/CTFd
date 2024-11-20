@@ -320,7 +320,6 @@ def create_container(docker, image, team, portbl):
     assigned_ports = dict()
     for i in needed_ports:
         while True:
-            print(current_app.config.get("DOCKER_MIN_PORT"), current_app.config.get("DOCKER_MAX_PORT"))
             assigned_port = random.choice(range(current_app.config.get("DOCKER_MIN_PORT"), current_app.config.get("DOCKER_MAX_PORT")))
             if assigned_port not in portbl:
                 assigned_ports['%s/tcp' % assigned_port] = {}
@@ -337,6 +336,9 @@ def create_container(docker, image, team, portbl):
         r = requests.post(url="%s/containers/create?name=%s" % (URL_TEMPLATE, container_name), cert=CERT,
                       verify=False, data=data, headers=headers)
         result = r.json()
+        if ("message" in result.keys() and result["message"].startswith("Conflict")):
+            print(result)
+            return "fail"
         s = requests.post(url="%s/containers/%s/start" % (URL_TEMPLATE, result['Id']), cert=CERT, verify=False,
                           headers=headers)
     else:
@@ -565,7 +567,7 @@ class ContainerAPI(Resource):
                     delete_container(docker, i.instance_id)
                     DockerChallengeTracker.query.filter_by(instance_id=i.instance_id).delete()
                     db.session.commit()
-            check = DockerChallengeTracker.query.filter_by(team_id=session.id).filter_by(docker_image=container).first()
+            check = DockerChallengeTracker.query.filter_by(team_id=session.id).first()
         else:
             session = get_current_user()
             for i in containers:
@@ -573,20 +575,23 @@ class ContainerAPI(Resource):
                     delete_container(docker, i.instance_id)
                     DockerChallengeTracker.query.filter_by(instance_id=i.instance_id).delete()
                     db.session.commit()
-            check = DockerChallengeTracker.query.filter_by(user_id=session.id).filter_by(docker_image=container).first()
+            check = DockerChallengeTracker.query.filter_by(user_id=session.id).first()
+        print(check)
         # If this container is already created, we don't need another one.
-        if check != None and not (unix_time(datetime.utcnow()) - int(check.timestamp)) >= 300:
+        if check != None and not (unix_time(datetime.utcnow()) - int(check.timestamp)) >= 300 and request.args.get('nuke') != 'true':
             return abort(403)
         # The exception would be if we are reverting a box. So we'll delete it if it exists and has been around for more than 5 minutes.
         elif check != None:
             delete_container(docker, check.instance_id)
             if is_teams_mode():
-                DockerChallengeTracker.query.filter_by(team_id=session.id).filter_by(docker_image=container).delete()
+                DockerChallengeTracker.query.filter_by(team_id=session.id).delete()
             else:
-                DockerChallengeTracker.query.filter_by(user_id=session.id).filter_by(docker_image=container).delete()
+                DockerChallengeTracker.query.filter_by(user_id=session.id).delete()
             db.session.commit()
         portsbl = get_unavailable_ports(docker)
         create = create_container(docker, container, session.name, portsbl)
+        if (create == "fail"):
+            return abort(409)
         ports = json.loads(create[1])['HostConfig']['PortBindings'].values()
         entry = DockerChallengeTracker(
             team_id=session.id if is_teams_mode() else None,
@@ -602,7 +607,6 @@ class ContainerAPI(Resource):
         db.session.commit()
         #db.session.close()
         return
-
 
 active_docker_namespace = Namespace("docker", description='Endpoint to retrieve User Docker Image Status')
 

@@ -69,8 +69,10 @@ function get_docker_status(container, conn_info = '') {
     CTFd.fetch("/api/v1/docker_status")
         .then((data) => {
             data.json().then((result) => {
+                let flag = false;
                 CTFd.lib.$.each(result['data'], function(i, item) {
                     if (item.docker_image === container) {
+                        flag = true;
                         var ports = String(item.ports).split(',');
                         var data = '';
                         CTFd.lib.$.each(ports, function(x, port) {
@@ -99,11 +101,14 @@ function get_docker_status(container, conn_info = '') {
                         return false;
                     };
                 });
+                if (flag === false) {
+                    CTFd.lib.$("#docker_container").html('<a onclick="nuke_container(\'' + container + '\', \'' + conn_info + '\');" class=\'btn btn-danger\'><small style=\'color:white;\'><i class="fas fa-burst"></i> Replace old docker</small></a>');
+                }
             }).catch(() => {
                 ezal("Attention!", "Error");
             });
         }).catch(() => {
-            // TODO
+                // TODO
             ezal("Attention!", "Error");
         });
 };
@@ -113,9 +118,25 @@ function start_container(container, conn_info) {
     CTFd.fetch("/api/v1/container?name=" + container )
         .then((data) => {
             console.log(data);
-            get_docker_status(container, conn_info);
+            if (data.status === 409) {
+                CTFd.lib.$("#docker_container").html('<a onclick="nuke_container(\'' + container + '\', \'' + conn_info + '\');" class=\'btn btn-danger\'><small style=\'color:white;\'><i class="fas fa-burst"></i> NUKE</small></a>');
+            }
+            else {
+                get_docker_status(container, conn_info);
+            }
         }).catch(() => {
             ezal("Attention!", "You can only revert a container once per 5 minutes! Please be patient.");
+            get_docker_status(container, conn_info);
+        });
+}
+
+function nuke_container(container, conn_info) {
+    CTFd.lib.$('#docker_container').html('<div class="text-center"><i class="fas fa-circle-notch fa-spin fa-1x"></i></div>');
+    CTFd.fetch("/api/v1/container?name=" + container + "&nuke=true")
+        .then((data) => {
+            get_docker_status(container, conn_info);
+        }).catch(() => {
+            ezal("Attention!", "Nuke didnt work");
             get_docker_status(container, conn_info);
         });
 }
