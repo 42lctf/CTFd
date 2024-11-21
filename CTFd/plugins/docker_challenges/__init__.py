@@ -173,12 +173,12 @@ def define_docker_status(app):
         docker_config = DockerConfig.query.filter_by(id=1).first()
         docker_tracker = DockerChallengeTracker.query.all()
         for i in docker_tracker:
-            if is_teams_mode():
-                name = Teams.query.filter_by(id=i.team_id).first()
-                i.team_id = name.name
-            else:
-                name = Users.query.filter_by(id=i.user_id).first()
-                i.user_id = name.name
+            # if is_teams_mode():
+            #     name = Teams.query.filter_by(id=i.team_id).first()
+            #     i.team_id = name.name
+            # else:
+            name = Users.query.filter_by(id=i.user_id).first()
+            i.user_id = name.name
         return render_template("admin_docker_status.html", dockers=docker_tracker)
 
     app.register_blueprint(admin_docker_status)
@@ -491,12 +491,12 @@ class DockerChallengeType(BaseChallenge):
         submission = data["submission"].strip()
         docker = DockerConfig.query.filter_by(id=1).first()
         try:
-            if is_teams_mode():
-                docker_containers = DockerChallengeTracker.query.filter_by(
-                    docker_image=challenge.docker_image).filter_by(team_id=team.id).first()
-            else:
-                docker_containers = DockerChallengeTracker.query.filter_by(
-                    docker_image=challenge.docker_image).filter_by(user_id=user.id).first()
+            # if is_teams_mode():
+            #     docker_containers = DockerChallengeTracker.query.filter_by(
+            #         docker_image=challenge.docker_image).filter_by(team_id=team.id).first()
+            # else:
+            docker_containers = DockerChallengeTracker.query.filter_by(
+                docker_image=challenge.docker_image).filter_by(user_id=user.id).first()
             delete_container(docker, docker_containers.instance_id)
             DockerChallengeTracker.query.filter_by(instance_id=docker_containers.instance_id).delete()
         except:
@@ -559,34 +559,33 @@ class ContainerAPI(Resource):
         containers = DockerChallengeTracker.query.all()
         if container not in get_repositories(docker, tags=True):
             return abort(403)
-        if is_teams_mode():
-            session = get_current_team()
-            # First we'll delete all old docker containers (+2 hours)
-            for i in containers:
-                if int(session.id) == int(i.team_id) and (unix_time(datetime.utcnow()) - int(i.timestamp)) >= 7200:
-                    delete_container(docker, i.instance_id)
-                    DockerChallengeTracker.query.filter_by(instance_id=i.instance_id).delete()
-                    db.session.commit()
-            check = DockerChallengeTracker.query.filter_by(team_id=session.id).first()
-        else:
-            session = get_current_user()
-            for i in containers:
-                if int(session.id) == int(i.user_id) and (unix_time(datetime.utcnow()) - int(i.timestamp)) >= 7200:
-                    delete_container(docker, i.instance_id)
-                    DockerChallengeTracker.query.filter_by(instance_id=i.instance_id).delete()
-                    db.session.commit()
-            check = DockerChallengeTracker.query.filter_by(user_id=session.id).first()
-        print(check)
+        # if is_teams_mode():
+        #     session = get_current_team()
+        #     # First we'll delete all old docker containers (+2 hours)
+        #     for i in containers:
+        #         if int(session.id) == int(i.team_id) and (unix_time(datetime.utcnow()) - int(i.timestamp)) >= 7200:
+        #             delete_container(docker, i.instance_id)
+        #             DockerChallengeTracker.query.filter_by(instance_id=i.instance_id).delete()
+        #             db.session.commit()
+        #     check = DockerChallengeTracker.query.filter_by(team_id=session.id).first()
+        # else:
+        session = get_current_user()
+        for i in containers:
+            if int(session.id) == int(i.user_id) and (unix_time(datetime.utcnow()) - int(i.timestamp)) >= 7200:
+                delete_container(docker, i.instance_id)
+                DockerChallengeTracker.query.filter_by(instance_id=i.instance_id).delete()
+                db.session.commit()
+        check = DockerChallengeTracker.query.filter_by(user_id=session.id).first()
         # If this container is already created, we don't need another one.
         if check != None and not (unix_time(datetime.utcnow()) - int(check.timestamp)) >= 300 and request.args.get('nuke') != 'true':
             return abort(403)
         # The exception would be if we are reverting a box. So we'll delete it if it exists and has been around for more than 5 minutes.
         elif check != None:
             delete_container(docker, check.instance_id)
-            if is_teams_mode():
-                DockerChallengeTracker.query.filter_by(team_id=session.id).delete()
-            else:
-                DockerChallengeTracker.query.filter_by(user_id=session.id).delete()
+            # if is_teams_mode():
+            #     DockerChallengeTracker.query.filter_by(team_id=session.id).delete()
+            # else:
+            DockerChallengeTracker.query.filter_by(user_id=session.id).delete()
             db.session.commit()
         portsbl = get_unavailable_ports(docker)
         create = create_container(docker, container, session.name, portsbl)
@@ -594,8 +593,10 @@ class ContainerAPI(Resource):
             return abort(409)
         ports = json.loads(create[1])['HostConfig']['PortBindings'].values()
         entry = DockerChallengeTracker(
-            team_id=session.id if is_teams_mode() else None,
-            user_id=session.id if not is_teams_mode() else None,
+            # team_id=session.id if is_teams_mode() else None,
+            # user_id=session.id if not is_teams_mode() else None,
+            team_id=None,
+            user_id=session.id,
             docker_image=container,
             timestamp=unix_time(datetime.utcnow()),
             revert_time=unix_time(datetime.utcnow()) + 300,
@@ -621,12 +622,12 @@ class DockerStatus(Resource):
     @authed_only
     def get(self):
         docker = DockerConfig.query.filter_by(id=1).first()
-        if is_teams_mode():
-            session = get_current_team()
-            tracker = DockerChallengeTracker.query.filter_by(team_id=session.id)
-        else:
-            session = get_current_user()
-            tracker = DockerChallengeTracker.query.filter_by(user_id=session.id)
+        # if is_teams_mode():
+        #     session = get_current_team()
+        #     tracker = DockerChallengeTracker.query.filter_by(team_id=session.id)
+        # else:
+        session = get_current_user()
+        tracker = DockerChallengeTracker.query.filter_by(user_id=session.id)
         data = list()
         for i in tracker:
             data.append({
