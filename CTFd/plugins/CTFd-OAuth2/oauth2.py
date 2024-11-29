@@ -35,20 +35,21 @@ def load(app):
         if user is not None:
             log('logins', "[{date}] {ip} - " + user.name + " - OAuth2 bridged user found")
             return user
-    def create_user(username, displayName):
+    def create_user(username, displayName, pool):
         with app.app_context():
+            user = Users(email=username, name=displayName.strip(), pool=pool)
             log('logins', "[{date}] {ip} - " + user.name + " - No OAuth2 bridged user found, creating user")
-            user = Users(email=username, name=displayName.strip())
             db.session.add(user)
             db.session.commit()
             db.session.flush()
             return user
-    def create_or_get_user(username, displayName):
+    def create_or_get_user(username, displayName, pool):
         user = retrieve_user_from_database(username)
         if user is not None:
             return user
         if create_missing_user:
-            return create_user(username, displayName)
+            create_user(username, displayName, pool)
+            return retrieve_user_from_database(username)
         else:
             log('logins', "[{date}] {ip} - " + user.name + " - No OAuth2 bridged user found and not configured to create missing users")
             return None
@@ -69,7 +70,7 @@ def load(app):
     }
 
     def get_oauth2_user():
-        user_info = flask_dance.contrib.azure.azure.get("/v2/me").json()
+        user_info = provider_blueprints['oauth2']().session.get("/v2/me").json()
         return create_or_get_user(
             username=user_info["email"],
             displayName=user_info["login"],
