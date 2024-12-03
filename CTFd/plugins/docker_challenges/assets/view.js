@@ -101,7 +101,7 @@ function get_docker_status(container, conn_info = '') {
                         return false;
                     };
                 });
-                if (flag === false) {
+                if (result['data'].length > 0 && flag === false) {
                     CTFd.lib.$("#docker_container").html('<a onclick="nuke_container(\'' + container + '\', \'' + conn_info + '\');" class=\'btn btn-danger\'><small style=\'color:white;\'><i class="fas fa-burst"></i> Replace old docker</small></a>');
                 }
             }).catch(() => {
