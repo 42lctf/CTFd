@@ -119,6 +119,11 @@ class ServerConfig(object):
     DOCKER_MIN_PORT: str = empty_str_cast(config_ini["docker"]["DOCKER_MIN_PORT"]) or ''
     DOCKER_MAX_PORT: str = empty_str_cast(config_ini["docker"]["DOCKER_MAX_PORT"]) or ''
 
+    DISCORD_URL: str = empty_str_cast(config_ini["discord"]["DISCORD_URL"]) or ''
+    DISCORD_SECRET: str = empty_str_cast(config_ini["discord"]["DISCORD_SECRET"]) or ''
+    DISCORD_HOST: str = empty_str_cast(config_ini["discord"]["DISCORD_HOST"]) or ''
+
+
     if REDIS_URL or REDIS_HOST is None:
         CACHE_REDIS_URL = REDIS_URL
     else:

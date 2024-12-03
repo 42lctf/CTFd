@@ -24,6 +24,10 @@ services:
       - DOCKER_MIN_PORT=${DOCKER_MIN_PORT}
       - DOCKER_MAX_PORT=${DOCKER_MAX_PORT}
 
+      - DISCORD_URL=${DISCORD_URL}
+      - DISCORD_SECRET=${DISCORD_SECRET}
+      - DISCORD_HOST=${DISCORD_HOST}
+
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
