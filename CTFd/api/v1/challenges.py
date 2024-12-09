@@ -576,7 +576,7 @@ class ChallengeAttempt(Resource):
             timed_fails = Fails.query.filter(
                 Submissions.account_id == user.account_id, 
                 Submissions.challenge_id == challenge_id, 
-                Submissions.date > (datetime.datetime.utcnow() - datetime.timedelta(minutes=challenge.rate_limit_buffer))
+                Submissions.date > (datetime.datetime.utcnow() - datetime.timedelta(minutes=challenge.rate_limit_span))
             ).order_by(Submissions.date.asc()).all()
             
 
@@ -654,15 +654,20 @@ class ChallengeAttempt(Resource):
                     },
                     403,
                 )
-            elif len(timed_fails) > 0 and len(timed_fails) + 1 >= challenge.rate_limit_span:
+            elif len(timed_fails) > 0 and len(timed_fails) >= challenge.rate_limit_buffer:
                 first_timed_date = timed_fails[0].date
                 remaining = challenge.rate_limit_span - round((datetime.datetime.utcnow() - first_timed_date).seconds / 60, 1)
+                remaining_word = pluralize(remaining, singular="minute", plural="minutes")
+                if (remaining > 60):
+                    remaining = round(remaining / 60, 1)
+                    remaining_word = pluralize(remaining, singular="hour", plural="hours")
+                    
                 return (
                     {
                         "success": True,
                         "data": {
                             "status": "incorrect",
-                            "message": f"You must wait {remaining} minutes for your next attempt",
+                            "message": f"You must wait {remaining} {remaining_word} for your next attempt",
                         },
                     },
                     403,
@@ -725,12 +730,23 @@ class ChallengeAttempt(Resource):
                 elif (challenge.rate_limit_buffer > 0 and challenge.rate_limit_span > 0):
                     attempts_left = challenge.rate_limit_buffer - (len(timed_fails) + 1)
                     time_next_try = challenge.rate_limit_span
+                    
+                    if (len(timed_fails) > 0):
+                        first_timed_date = timed_fails[0].date
+                        time_next_try = challenge.rate_limit_span - round((datetime.datetime.utcnow() - first_timed_date).seconds / 60, 1)
+
+                    remaining_word = pluralize(time_next_try, singular="minute", plural="minutes")
+                    
+                    if (time_next_try > 60):
+                        time_next_try = round(time_next_try / 60, 1)
+                        remaining_word = pluralize(time_next_try, singular="hour", plural="hours")
+                    
                     return {
                         "success": True,
                         "data": {
                             "status": "incorrect",
-                            "message": "{} You have {} attempts remaining for the next {} minutes.".format(
-                                message, attempts_left, time_next_try
+                            "message": "{} You have {} {} remaining for the next {} {}.".format(
+                                message, attempts_left, pluralize(attempts_left, singular="attempt", plural="attempts"), time_next_try, remaining_word
                             ),
                         },
                     }
