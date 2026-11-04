@@ -209,7 +209,7 @@ class DockerService:
                 # et gdb). Cette capability fait partie du jeu par defaut de
                 # Docker : on reste tres en dessous de la norme, et chroot seul
                 # n'est pas un vecteur d'evasion sans SYS_ADMIN, toujours refuse.
-                security_opt=['no-new-privileges'],
+                # security_opt=['no-new-privileges'],  # retire : neutralise sudo, dont dependent les challenges privesc
                 **extra_host_config,
             )
 
