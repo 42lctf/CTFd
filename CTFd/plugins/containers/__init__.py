@@ -528,6 +528,28 @@ def load(app: Flask):
 
     docker_socket = ContainerConfig.get('docker_socket', 'unix://var/run/docker.sock')
 
+    # Le materiel SSH (cle, known_hosts, ssh_config) est ecrit dans ~/.ssh, donc
+    # dans la couche inscriptible du conteneur : un docker restart le conserve,
+    # mais une recreation l'efface -- or `make start` fait `up -d --build`. Sans
+    # ces fichiers, tous les challenges conteneurises cessent de demarrer alors
+    # que la configuration en base reste correcte, panne silencieuse et penible
+    # a diagnostiquer. Le contenu etant deja en base, on le rematerialise a
+    # chaque chargement. L'operation est idempotente : elle reecrit les memes
+    # fichiers.
+    if docker_socket.startswith('ssh://') and ContainerConfig.get('ssh_key_content'):
+        try:
+            from .routes.admin import _configure_ssh_connection
+            _configure_ssh_connection({
+                'ssh_hostname':    ContainerConfig.get('ssh_hostname', ''),
+                'ssh_user':        ContainerConfig.get('ssh_user', 'root'),
+                'ssh_port':        ContainerConfig.get('ssh_port', '22'),
+                'ssh_key_content': ContainerConfig.get('ssh_key_content', ''),
+                'ssh_known_hosts': ContainerConfig.get('ssh_known_hosts', ''),
+            })
+            logger.info("Materiel SSH rematerialise depuis la configuration")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Rematerialisation du materiel SSH impossible: {e}")
+
     # Docker service - never fatal: the plugin must load so an admin can fix
     # the configuration from the UI.
     try:
