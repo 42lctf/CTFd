@@ -1,0 +1,46 @@
+{% extends "challenge.html" %}
+
+{% block connection_info %}
+<style>
+  /* inline confirmation state for the terminate button */
+  #terminate-chal.terminate-confirming {
+    outline: 2px solid #fff;
+    outline-offset: -4px;
+    opacity: .9;
+  }
+</style>
+<div class="mb-3 text-center deployment-actions" data-challenge-id="{{ challenge.id }}"
+     data-renew-minutes="{{ renew_minutes }}">
+  <div class="alert alert-primary" id="deployment-info">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  <span>
+    <button
+      type="button"
+      onclick="container_request({{ challenge.id }})"
+      class="btn btn-primary d-none"
+      id="create-chal"
+    >
+      <small style="color: white"> Fetch Instance </small>
+    </button>
+    <button
+      type="button"
+      onclick="container_renew({{ challenge.id }})"
+      class="extend-chal btn btn-info d-none"
+      id="extend-chal"
+    >
+      <small style="color: white"> Extend +{{ renew_minutes }}m </small>
+    </button>
+    <button
+      type="button"
+      onclick="container_terminate({{ challenge.id }})"
+      class="terminate-chal btn btn-danger d-none"
+      id="terminate-chal"
+    >
+      <small style="color: white"> Terminate </small>
+    </button>
+  </span>
+</div>
+{% endblock %}
