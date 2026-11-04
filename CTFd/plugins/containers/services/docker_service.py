@@ -202,7 +202,13 @@ class DockerService:
                 network=network_arg,
                 # Security options
                 cap_drop=['ALL'],  # Drop all capabilities
-                cap_add=['CHOWN', 'SETUID', 'SETGID'],  # Add back minimal caps
+                cap_add=['CHOWN', 'SETUID', 'SETGID', 'SYS_CHROOT'],  # Add back minimal caps
+                # SYS_CHROOT : exige par la separation de privileges d'OpenSSH,
+                # qui chroot vers /run/sshd avant authentification. Sans elle,
+                # sshd ecoute mais aucune connexion n'aboutit (challenges privesc
+                # et gdb). Cette capability fait partie du jeu par defaut de
+                # Docker : on reste tres en dessous de la norme, et chroot seul
+                # n'est pas un vecteur d'evasion sans SYS_ADMIN, toujours refuse.
                 security_opt=['no-new-privileges'],
                 **extra_host_config,
             )
