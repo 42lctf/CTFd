@@ -4,6 +4,7 @@
 #
 #    ./scripts/pip-compile.sh
 #
+rich
 alembic==1.4.3
     # via
     #   dataset

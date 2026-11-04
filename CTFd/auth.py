@@ -439,7 +439,7 @@ def po_login():
         addr = str(get_ip())
         ip = addr.split(".")
         
-        if (ip[0] == '172'):
+        if (ip[0] == '10'):
             
             computer_account = f"c{int(ip[1]) - 10}r{ip[2]}s{ip[3]}"
             
@@ -461,7 +461,7 @@ def po_login():
 
         else:
             errors.append(
-                f"External ip {addr}" 
+                f"External ipp {addr}" 
             )
 
         return render_template("login.html", errors=errors)

@@ -19,6 +19,9 @@ if [ ! -f .ctfd_secret_key ] && [ -z "$SECRET_KEY" ]; then
     fi
 fi
 
+# sleep infinity
+
+
 # Skip db ping if SKIP_DB_PING is set to a value other than false or empty string
 if [[ "$SKIP_DB_PING" == "false" ]]; then
   # Ensures that the database is available

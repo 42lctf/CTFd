@@ -51,8 +51,8 @@ from flask import current_app
 
 class DockerConfig(db.Model):
     """
-	Docker Config Model. This model stores the config for docker API connections.
-	"""
+    Docker Config Model. This model stores the config for docker API connections.
+    """
     id = db.Column(db.Integer, primary_key=True)
     hostname = db.Column("hostname", db.String(64), index=True)
     tls_enabled = db.Column("tls_enabled", db.Boolean, default=False, index=True)
@@ -64,8 +64,8 @@ class DockerConfig(db.Model):
 
 class DockerChallengeTracker(db.Model):
     """
-	Docker Container Tracker. This model stores the users/teams active docker containers.
-	"""
+    Docker Container Tracker. This model stores the users/teams active docker containers.
+    """
     id = db.Column(db.Integer, primary_key=True)
     team_id = db.Column("team_id", db.String(64), index=True)
     user_id = db.Column("user_id", db.String(64), index=True)
@@ -288,7 +288,8 @@ def get_required_ports(docker, image):
     return result
 
 
-def create_container(docker, image, team, portbl):
+# ---------- MODIFIED: pass full user; add Docker Labels so cAdvisor exposes them ----------
+def create_container(docker, image, user, portbl):
     tls = docker.tls_enabled
     CERT = None
     if not tls:
@@ -314,9 +315,13 @@ def create_container(docker, image, team, portbl):
             return []
     host = docker.hostname
     URL_TEMPLATE = '%s://%s' % (prefix, host)
+
     needed_ports = get_required_ports(docker, image)
-    team = hashlib.md5(team.encode("utf-8")).hexdigest()[:10]
-    container_name = "dod_%s_%s" % (image.split(':')[0], team)
+
+    # keep deterministic-ish name; hash from user.name like before
+    user_hash = hashlib.md5(str(user.name).encode("utf-8")).hexdigest()[:10]
+    container_name = "dod_%s_%s" % (image.split(':')[0], user_hash)
+
     assigned_ports = dict()
     for i in needed_ports:
         while True:
@@ -330,26 +335,42 @@ def create_container(docker, image, team, portbl):
     for i in needed_ports:
         ports[i] = {}
         bindings[i] = [{"HostPort": tmp_ports.pop()}]
+
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  IMPORTANT
+    labels = {
+        "ctfd_user_id": str(user.id),
+        "ctfd_user": str(user.name),
+        "ctfd_image": str(image),
+        "ctfd_origin": "ctfd-plugin",
+    }
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
     headers = {'Content-Type': "application/json"}
-    data = json.dumps({"Image": image, "ExposedPorts": ports, "HostConfig": {"PortBindings": bindings}})
+    payload = {
+        "Image": image,
+        "ExposedPorts": ports,
+        "HostConfig": {"PortBindings": bindings},
+        "Labels": labels,  # add labels to container so cAdvisor/Prometheus carry them
+    }
+    data = json.dumps(payload)
+
     if tls:
         r = requests.post(url="%s/containers/create?name=%s" % (URL_TEMPLATE, container_name), cert=CERT,
-                      verify=False, data=data, headers=headers)
+                          verify=False, data=data, headers=headers)
         result = r.json()
-        if ("message" in result.keys() and result["message"].startswith("Conflict")):
+        if ("message" in result.keys() and str(result["message"]).startswith("Conflict")):
             print(result)
             return "fail"
-        s = requests.post(url="%s/containers/%s/start" % (URL_TEMPLATE, result['Id']), cert=CERT, verify=False,
-                          headers=headers)
+        requests.post(url="%s/containers/%s/start" % (URL_TEMPLATE, result['Id']), cert=CERT, verify=False,
+                      headers=headers)
     else:
         r = requests.post(url="%s/containers/create?name=%s" % (URL_TEMPLATE, container_name),
                           data=data, headers=headers)
-        print(r.request.method, r.request.url, r.request.body)
         result = r.json()
-        print(result)
         # name conflicts are not handled properly
-        s = requests.post(url="%s/containers/%s/start" % (URL_TEMPLATE, result['Id']), headers=headers)
+        requests.post(url="%s/containers/%s/start" % (URL_TEMPLATE, result['Id']), headers=headers)
     return result, data
+# ---------- /MODIFIED ----------
 
 
 def delete_container(docker, instance_id):
@@ -377,13 +398,13 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def update(challenge, request):
         """
-		This method is used to update the information associated with a challenge. This should be kept strictly to the
-		Challenges table and any child tables.
+        This method is used to update the information associated with a challenge. This should be kept strictly to the
+        Challenges table and any child tables.
 
-		:param challenge:
-		:param request:
-		:return:
-		"""
+        :param challenge:
+        :param request:
+        :return:
+        """
         data = request.form or request.get_json()
         for attr, value in data.items():
             setattr(challenge, attr, value)
@@ -394,12 +415,12 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def delete(challenge):
         """
-		This method is used to delete the resources used by a challenge.
-		NOTE: Will need to kill all containers here
+        This method is used to delete the resources used by a challenge.
+        NOTE: Will need to kill all containers here
 
-		:param challenge:
-		:return:
-		"""
+        :param challenge:
+        :return:
+        """
         Fails.query.filter_by(challenge_id=challenge.id).delete()
         Solves.query.filter_by(challenge_id=challenge.id).delete()
         Flags.query.filter_by(challenge_id=challenge.id).delete()
@@ -416,11 +437,11 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def read(challenge):
         """
-		This method is in used to access the data of a challenge in a format processable by the front end.
+        This method is in used to access the data of a challenge in a format processable by the front end.
 
-		:param challenge:
-		:return: Challenge object, data dictionary to be returned to the user
-		"""
+        :param challenge:
+        :return: Challenge object, data dictionary to be returned to the user
+        """
         challenge = DockerChallenge.query.filter_by(id=challenge.id).first()
         data = {
             'id': challenge.id,
@@ -444,11 +465,11 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def create(request):
         """
-		This method is used to process the challenge creation request.
+        This method is used to process the challenge creation request.
 
-		:param request:
-		:return:
-		"""
+        :param request:
+        :return:
+        """
         data = request.form or request.get_json()
         challenge = DockerChallenge(**data)
         db.session.add(challenge)
@@ -458,14 +479,14 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def attempt(challenge, request):
         """
-		This method is used to check whether a given input is right or wrong. It does not make any changes and should
-		return a boolean for correctness and a string to be shown to the user. It is also in charge of parsing the
-		user's input from the request itself.
+        This method is used to check whether a given input is right or wrong. It does not make any changes and should
+        return a boolean for correctness and a string to be shown to the user. It is also in charge of parsing the
+        user's input from the request itself.
 
-		:param challenge: The Challenge object from the database
-		:param request: The request the user submitted
-		:return: (boolean, string)
-		"""
+        :param challenge: The Challenge object from the database
+        :param request: The request the user submitted
+        :return: (boolean, string)
+        """
 
         data = request.form or request.get_json()
         print(request.get_json())
@@ -480,13 +501,13 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def solve(user, team, challenge, request):
         """
-		This method is used to insert Solves into the database in order to mark a challenge as solved.
+        This method is used to insert Solves into the database in order to mark a challenge as solved.
 
-		:param team: The Team object from the database
-		:param chal: The Challenge object from the database
-		:param request: The request the user submitted
-		:return:
-		"""
+        :param team: The Team object from the database
+        :param chal: The Challenge object from the database
+        :param request: The request the user submitted
+        :return:
+        """
         data = request.form or request.get_json()
         submission = data["submission"].strip()
         docker = DockerConfig.query.filter_by(id=1).first()
@@ -516,13 +537,13 @@ class DockerChallengeType(BaseChallenge):
     @staticmethod
     def fail(user, team, challenge, request):
         """
-		This method is used to insert Fails into the database in order to mark an answer incorrect.
+        This method is used to insert Fails into the database in order to mark an answer incorrect.
 
-		:param team: The Team object from the database
-		:param chal: The Challenge object from the database
-		:param request: The request the user submitted
-		:return:
-		"""
+        :param team: The Team object from the database
+        :param chal: The Challenge object from the database
+        :param request: The request the user submitted
+        :return:
+        """
         data = request.form or request.get_json()
         submission = data["submission"].strip()
         wrong = Fails(
@@ -588,7 +609,11 @@ class ContainerAPI(Resource):
             DockerChallengeTracker.query.filter_by(user_id=session.id).delete()
             db.session.commit()
         portsbl = get_unavailable_ports(docker)
-        create = create_container(docker, container, session.name, portsbl)
+
+        # ---------- MODIFIED: pass the full user so labels can be set ----------
+        create = create_container(docker, container, session, portsbl)
+        # ----------------------------------------------------------------------
+
         if (create == "fail"):
             return abort(409)
         ports = json.loads(create[1])['HostConfig']['PortBindings'].values()
@@ -615,9 +640,9 @@ active_docker_namespace = Namespace("docker", description='Endpoint to retrieve 
 @active_docker_namespace.route("", methods=['POST', 'GET'])
 class DockerStatus(Resource):
     """
-	The Purpose of this API is to retrieve a public JSON string of all docker containers
-	in use by the current team/user.
-	"""
+    The Purpose of this API is to retrieve a public JSON string of all docker containers
+    in use by the current team/user.
+    """
 
     @authed_only
     def get(self):
@@ -653,9 +678,9 @@ docker_namespace = Namespace("docker", description='Endpoint to retrieve dockers
 @docker_namespace.route("", methods=['POST', 'GET'])
 class DockerAPI(Resource):
     """
-	This is for creating Docker Challenges. The purpose of this API is to populate the Docker Image Select form
-	object in the Challenge Creation Screen.
-	"""
+    This is for creating Docker Challenges. The purpose of this API is to populate the Docker Image Select form
+    object in the Challenge Creation Screen.
+    """
 
     @admins_only
     def get(self):
