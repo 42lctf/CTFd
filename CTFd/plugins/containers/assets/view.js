@@ -448,6 +448,20 @@ function container_stop(challenge_id) {
     var maxAttempts = 25; // ~5s
 
     function findChallengeId() {
+        // Source autoritative : le theme pose CTFd._internal.challenge.data
+        // AVANT d'appeler postRender (pixo challenges.js l.53 puis l.125), donc
+        // data.id est l'id du challenge courant. On le prefere au DOM : querySelector
+        // peut attraper le panneau perime du challenge precedent (CTFd reutilise le
+        // meme modal), ce qui faisait partir l'appel info sur le mauvais challenge
+        // (id decale d'un cran) et laissait parfois le spinner infini.
+        try {
+            var d = CTFd._internal.challenge.data;
+            if (d && d.id !== undefined && d.id !== null) {
+                var cid = parseInt(d.id, 10);
+                if (!isNaN(cid)) return cid;
+            }
+        } catch (e) { /* data pas encore pose : on retombe sur le DOM */ }
+
         var panel = document.querySelector(".deployment-actions");
         if (panel) {
             var id = parseInt(panel.getAttribute("data-challenge-id"), 10);
@@ -493,5 +507,10 @@ function container_stop(challenge_id) {
         }
     }
 
-    tryInit();
+    // Sondage de SECOURS seulement (themes sans postRender). Demarre apres un
+    // delai pour laisser postRender declencher l'init en premier : lance
+    // immediatement, l'IIFE s'execute pendant le getScript, avant que le theme
+    // ait pose challenge.data et insere le panneau -- il agirait alors sur l'etat
+    // du challenge PRECEDENT (id decale, spinner infini).
+    setTimeout(tryInit, 250);
 })();
