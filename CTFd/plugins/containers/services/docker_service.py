@@ -202,7 +202,14 @@ class DockerService:
                 network=network_arg,
                 # Security options
                 cap_drop=['ALL'],  # Drop all capabilities
-                cap_add=['CHOWN', 'SETUID', 'SETGID', 'SYS_CHROOT'],  # Add back minimal caps
+                cap_add=['CHOWN', 'SETUID', 'SETGID', 'SYS_CHROOT', 'DAC_OVERRIDE'],  # Add back minimal caps
+                # DAC_OVERRIDE : le vrai root ignore les permissions de fichiers.
+                # Sans elle, le root obtenu dans un challenge privesc (via sudo/setuid)
+                # ne peut pas traverser un dossier qu'il ne possede pas (ex. le home
+                # 0750 d'un autre user), donc la solution intended echoue en
+                # "Permission denied" (prouve sur tiny_escape : sudo cat flag.txt).
+                # Ne concerne que le root DANS le conteneur (ce que le challenge donne
+                # deja au joueur) ; confine au userns rootless. A reappliquer en MAJ.
                 # SYS_CHROOT : exige par la separation de privileges d'OpenSSH,
                 # qui chroot vers /run/sshd avant authentification. Sans elle,
                 # sshd ecoute mais aucune connexion n'aboutit (challenges privesc
