@@ -461,14 +461,34 @@ function container_stop(challenge_id) {
         return null;
     }
 
-    function tryInit() {
-        attempts += 1;
+    var inited = false;
+    function doInit() {
+        if (inited) return;
         var challengeId = findChallengeId();
         if (challengeId !== null) {
+            inited = true;
             view_container_info(challengeId);
-            return;
         }
-        if (attempts < maxAttempts) {
+    }
+
+    // Hook fiable : le theme classique (pixo) appelle challenge.postRender()
+    // APRES avoir insere le view dans le DOM (challenges.js l.125), donc le
+    // panneau .deployment-actions existe a coup sur. Sans ca, l'IIFE sondait le
+    // DOM avant qu'il soit pret et abandonnait apres ~5s, laissant un spinner
+    // "Loading..." infini (que rouvrir la popup corrigeait par hasard de timing).
+    // Le sondage ci-dessous reste en secours pour un theme sans postRender.
+    var prevPostRender = CTFd._internal.challenge.postRender;
+    CTFd._internal.challenge.postRender = function () {
+        if (typeof prevPostRender === "function") {
+            try { prevPostRender(); } catch (e) { }
+        }
+        doInit();
+    };
+
+    function tryInit() {
+        attempts += 1;
+        doInit();
+        if (!inited && attempts < maxAttempts) {
             setTimeout(tryInit, 200);
         }
     }
