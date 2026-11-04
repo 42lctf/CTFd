@@ -115,6 +115,41 @@ class AntiCheatService:
             logger.error(f"Failed to persist flag attempt: {e}")
             db.session.rollback()
 
+    @staticmethod
+    def _ctfd_flags_match(challenge_id, submitted_flag):
+        """Confronter la soumission aux flags saisis dans l'administration CTFd.
+
+        En amont, le mode static compare uniquement a la concatenation de
+        flag_prefix et flag_suffix, donc a un flag saisi dans le champ propre au
+        plugin. La table flags de CTFd n'est alors jamais consultee pour valider
+        (voir _ensure_placeholder_flag).
+
+        Or les flags de cette instance sont saisis dans l'interface CTFd. Deux
+        de nos challenges ne tiendraient de toute facon pas dans ce champ :
+        BabyStack a deux flags, et celui de Frozen fait 63 caracteres pour une
+        colonne limitee a 50.
+
+        Passer par CTFd restitue aussi ses types de flag (regex, insensible a la
+        casse) et le support de plusieurs flags par challenge.
+
+        Renvoie None si le challenge n'a aucun flag CTFd, afin que l'appelant
+        retombe sur le comportement d'origine du plugin.
+        """
+        from CTFd.models import Flags
+        from CTFd.plugins.flags import get_flag_class
+
+        flags = Flags.query.filter_by(challenge_id=challenge_id).all()
+        if not flags:
+            return None
+        for f in flags:
+            try:
+                if get_flag_class(f.type).compare(f, submitted_flag):
+                    return True
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"Flag {f.id} du challenge {challenge_id} illisible: {e}")
+                continue
+        return False
+
     def _validate_static(self, challenge, account_id, user_id, submitted_flag, ip, ua):
         static_flag = f"{challenge.flag_prefix or ''}{challenge.flag_suffix or ''}"
         attempt = self._new_attempt(
@@ -122,7 +157,11 @@ class AntiCheatService:
             self.flag_service.hash_flag(submitted_flag), ip, ua
         )
 
-        if self.flag_service.flags_equal(submitted_flag, static_flag):
+        par_ctfd = self._ctfd_flags_match(challenge.id, submitted_flag)
+        correct = (par_ctfd if par_ctfd is not None
+                   else self.flag_service.flags_equal(submitted_flag, static_flag))
+
+        if correct:
             attempt.is_correct = True
             attempt.is_cheating = False
             audit = ContainerAuditLog(
