@@ -112,7 +112,11 @@ class ContainerChallengeType(BaseChallenge):
     scripts = {
         "create": "/plugins/containers/assets/create.js",
         "update": "/plugins/containers/assets/update.js",
-        "view": "/plugins/containers/assets/view.js",
+        # ?_cc=N : jeton de cache. $.getScript ajoute deja _=timestamp, mais le
+        # jeton garantit une URL differente a chaque modif de view.js, donc un
+        # fetch frais pour tous les navigateurs (119 joueurs le jour J).
+        # A incrementer a chaque changement de view.js.
+        "view": "/plugins/containers/assets/view.js?_cc=2",
     }
     route = "/plugins/containers/assets/"
     blueprint = None
