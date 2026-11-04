@@ -90,10 +90,7 @@ function resetAlert() {
         var spinner = document.createElement("div");
         spinner.className = "spinner-border text-primary";
         spinner.setAttribute("role", "status");
-        var hidden = document.createElement("span");
-        hidden.className = "visually-hidden";
-        hidden.textContent = "Loading...";
-        spinner.appendChild(hidden);
+        spinner.setAttribute("aria-label", "");
         alert.appendChild(spinner);
     }
     setButtonsDisabled(true);
